@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 # ✅ Put your actual BotFather token here
-BOT_TOKEN = "PASTE_YOUR_BOTFATHER_TOKEN_HERE"
+BOT_TOKEN = "8229001980:AAEZ1a4AVsq92AOMMEap3tpYwBMgxppgeLQ"
 
 # Store the state of anti-link feature
 anti_link_enabled = False
