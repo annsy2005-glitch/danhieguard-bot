@@ -8,7 +8,7 @@ from telegram.ext import (
     filters
 )
 
-BOT_TOKEN = "PASTE_YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = "8229001980:AAEZ1a4AVsq92AOMMEap3tpYwBMgxppgeLQ"
 
 LINK_REGEX = re.compile(
     r"(https?://|www\.|t\.me/|telegram\.me/)",
