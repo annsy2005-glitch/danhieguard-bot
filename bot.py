@@ -20,12 +20,7 @@ async def antilink_off(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Check every message
 async def check_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not anti_link_enabled:
-        return
-    message = update.message
-    chat = update.effective_chat
-    user = message.from_user
-    member = await chat.get_member(user.id)
+    print(f"Message received from {update.message.from_user.username}: {update.message.text}")
     # Skip admins and group owner
     if member.status in ["administrator", "creator"]:
         return
