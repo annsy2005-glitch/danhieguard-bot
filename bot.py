@@ -1,62 +1,49 @@
-import re
 from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters
-)
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-BOT_TOKEN = "8229001980:AAEZ1a4AVsq92AOMMEap3tpYwBMgxppgeLQ"
+# ✅ Put your actual BotFather token here
+BOT_TOKEN = "PASTE_YOUR_BOTFATHER_TOKEN_HERE"
 
-LINK_REGEX = re.compile(
-    r"(https?://|www\.|t\.me/|telegram\.me/)",
-    re.IGNORECASE
-)
+# Store the state of anti-link feature
+anti_link_enabled = False
 
-GROUP_SETTINGS = {}
+# Command to turn on anti-link
+async def antilink_on(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global anti_link_enabled
+    anti_link_enabled = True
+    await update.message.reply_text("🛡️ Anti-link is now ON")
 
-def is_admin(user_id, admins):
-    return user_id in [admin.user.id for admin in admins]
+# Command to turn off anti-link
+async def antilink_off(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global anti_link_enabled
+    anti_link_enabled = False
+    await update.message.reply_text("🛡️ Anti-link is now OFF")
 
-async def antilink(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
-
-    admins = await context.bot.get_chat_administrators(chat_id)
-    if not is_admin(user_id, admins):
+# Delete messages with links from non-admins
+async def check_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not anti_link_enabled:
         return
-
-    GROUP_SETTINGS.setdefault(chat_id, {})
-    GROUP_SETTINGS[chat_id]["antilink"] = (
-        context.args and context.args[0].lower() == "on"
-    )
-
-    state = "ON" if GROUP_SETTINGS[chat_id]["antilink"] else "OFF"
-    await update.message.reply_text(f"🛡️ Anti-link is now {state}")
-
-async def watcher(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
-    if not message or not message.from_user:
-        return
-
-    chat_id = message.chat.id
+    chat = update.effective_chat
     user = message.from_user
-
-    settings = GROUP_SETTINGS.get(chat_id, {})
-    if not settings.get("antilink"):
+    # Skip admins
+    member = await chat.get_member(user.id)
+    if member.status in ["administrator", "creator"]:
         return
+    # Delete if message contains link
+    if message.entities:
+        for entity in message.entities:
+            if entity.type in ["url", "text_link"]:
+                await message.delete()
+                break
 
-    admins = await context.bot.get_chat_administrators(chat_id)
-    if is_admin(user.id, admins):
-        return
+# Main function
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    content = (message.text or "") + (message.caption or "")
-    if LINK_REGEX.search(content):
-        await message.delete()
+    app.add_handler(CommandHandler("antilink_on", antilink_on))
+    app.add_handler(CommandHandler("antilink_off", antilink_off))
+    app.add_handler(MessageHandler(filters.ALL, check_message))
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(CommandHandler("antilink", antilink))
-app.add_handler(MessageHandler(filters.ALL, watcher))
-app.run_polling()
+    print("Bot is starting...")
+    app.run_polling()
