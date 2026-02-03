@@ -39,8 +39,8 @@ async def check_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = message.text or ""
     # Regex to detect links
-    link_pattern = r"(https?://\S+|www\.\S+)"
-    if re.search(link_pattern, text):
+    link_pattern = r"(https?://|www\.|t\.me/)"
+if re.search(link_pattern, text.lower()):
         print(f"[LINK FOUND] From {user.username}: {text}")
         try:
             await message.delete()
